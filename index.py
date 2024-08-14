@@ -3,37 +3,70 @@ import curses
 # os.system('cls')
 
 def game_loop(window):
+    #setup inicial
     curses.curs_set(0)
-    window.border(0)
+    snake = [[10,15],
+            [9,15],
+            [8,15],
+            [7,15]
+            ] #xHorizontal,yVertical inicializa em 0,0 sempre
+    current_direction = curses.KEY_DOWN
     
-    height,width = window.getmaxyx()
-
-    personagem = [10,15] #xHorizontal,yVertical inicializa em 0,0 sempre 
-    window.addch(personagem[0],personagem[1], curses.ACS_DIAMOND)
-    window.addstr(f'Aperte Alguma tecla: \n')
     while True:
-        window.timeout(1000)
-        char = window.getch()
+        draw_screen(window=window)
+        draw_actor(actor=snake, window=window)
+        direction = get_new_direction(window=window, timeout = 1000)
+        if direction is None:
+            direction = current_direction
+        move_actor(actor=snake, direction=direction)
+        if actor_hit_border(actor=snake, window=window):
+            return
+
+def draw_screen(window):
         window.clear()
         window.border(0)
-        match char:
+
+def draw_actor(actor, window):
+    window.addch(actor[0],actor[1], curses.ACS_DIAMOND)
+        
+        
+def get_new_direction(window,timeout):
+        window.timeout(timeout)
+        direction = window.getch()
+        if direction in [curses.KEY_UP, curses.KEY_LEFT, curses.KEY_DOWN, curses.KEY_RIGHT]:
+            return direction 
+        return None
+
+        
+
+
+def move_actor(actor,direction):            
+        match direction:
             case curses.KEY_UP:
-                personagem [0] -= 1
+                actor [0] -= 1
             case curses.KEY_LEFT:
-                personagem [1] -= 1
+                actor [1] -= 1
             case curses.KEY_DOWN:
-                personagem [0] += 1
+                actor [0] += 1
             case curses.KEY_RIGHT:
-                personagem [1] += 1
+                actor [1] += 1
             case _ : # não apertou a tecla ou apertou outra tecla
                 pass
 
-        if (personagem [0] <= 0) or (personagem[0] >= height -1):
-            return
-        if (personagem [1] <= 0) or (personagem[1] >= width -1):
-            return
-        
-        window.addch(personagem[0],personagem[1], curses.ACS_DIAMOND)
+def actor_hit_border(actor,window):
+    height,width = window.getmaxyx()
+    if (actor [0] <= 0) or (actor[0] >= height -1):
+        return True
+    if (actor [1] <= 0) or (actor[1] >= width -1):
+        return True
+    return False
 
+def move_snake(actor,direction):
+    head = snake[0].copy() # recebe a copia da cabeça da cobrinha
+head [0] -= 1 # faz a cabeça da cobrinha -1 
+snake.insert(0,head)
+snake.pop()
+    
 if __name__ == "__main__":
     curses.wrapper(game_loop)
+    print('Perdeu !!!')
